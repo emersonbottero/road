@@ -3,17 +3,19 @@
     "name": "Cover Page",
     "items": [
       {
-      "title":"test",
-       "start": 2024,
-       "quarter": 2,
-       "duration": 3
+        "title":"test",
+        "start": 2024,
+        "quarter": 2,
+        "duration": 3,
+        "color":"darkblue"
       },
       {
         "title":"Oia..",
-         "start": 2025,
-         "quarter": 2,
-         "duration": 5
-        }
+        "start": 2025,
+        "quarter": 5,
+        "duration": 10,
+        "color":"darkgreen"
+      }
     ]
   },{
     "name": "Table of contents",

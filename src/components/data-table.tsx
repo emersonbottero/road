@@ -81,7 +81,13 @@ import {
 
 export const schema = z.object({
   name: z.string(),
-  items: z.string()
+  items: z.array(z.object({
+      title: z.string(),
+      start: z.number(),
+      quarter: z.number(),
+      duration: z.number(),
+      color:z.string()
+  }))
   // id: z.number(),
   // header: z.string(),
   // type: z.string(),
@@ -115,69 +121,69 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
     id: "drag",
     header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.name} />,
+    cell: ({ row }) => <DragHandle id={row.original.name} />,    
   },
-  {
-    id: "select",
-    // header: ({ table }) => (
-    //   <div className="flex items-center justify-center">
-    //     <Checkbox
-    //       checked={
-    //         table.getIsAllPageRowsSelected() ||
-    //         (table.getIsSomePageRowsSelected() && "indeterminate")
-    //       }
-    //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //       aria-label="Select all"
-    //     />
-    //   </div>
-    // ),
-    // cell: ({ row }) => (
-    //   <div className="flex items-center justify-center">
-    //     <Checkbox
-    //       checked={row.getIsSelected()}
-    //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-    //       aria-label="Select row"
-    //     />
-    //   </div>
-    // ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+  // {
+  //   id: "select",
+  //   // header: ({ table }) => (
+  //   //   <div className="flex items-center justify-center">
+  //   //     <Checkbox
+  //   //       checked={
+  //   //         table.getIsAllPageRowsSelected() ||
+  //   //         (table.getIsSomePageRowsSelected() && "indeterminate")
+  //   //       }
+  //   //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //   //       aria-label="Select all"
+  //   //     />
+  //   //   </div>
+  //   // ),
+  //   // cell: ({ row }) => (
+  //   //   <div className="flex items-center justify-center">
+  //   //     <Checkbox
+  //   //       checked={row.getIsSelected()}
+  //   //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //   //       aria-label="Select row"
+  //   //     />
+  //   //   </div>
+  //   // ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
   {
     accessorKey: "name",
-    header: "Name",
+    header: () => "Name",
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return <TableCellViewer item={ row.original}/>
     },
-    enableHiding: false,
+    enableHiding: false,        
   },
    {
     accessorKey: "items",
     header: () => (
       <>
-        <div className="grid grid-cols-4 gap-1 text-center *:bg-blue-800 *:rounded-2xl *:m-1">			
+        <div className="grid grid-cols-4 gap-1 text-center text-white *:text-white *:bg-blue-800 *:rounded-2xl *:my-1">			
 			    <span>2024</span><span>2025</span><span>2026</span>
 			    <span>2027</span>
 		    </div>
-        <div className="grid grid-cols-4 gap-1">			
-          <div className="grid grid-cols-4 gap-1 text-center *:bg-blue-800 *:rounded-2xl">			
+        <div className="grid grid-cols-4 gap-1 mb-1">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
         </div>
       </>
         ),
     cell: ({ row }) => (
-      <div className="w-32">       
-          {JSON.stringify(row.original.items)}
+      <div className="grid grid-cols-16 gap-1">  
+              {row.original.items.map((i, index) => (<div className="rounded-2xl p-1 text-center text-white" key={index} style={{gridColumn: `${i.quarter}/${i.duration}`, backgroundColor: i.color}}>{i.title}</div>))}
       </div>
     ),
   },
@@ -495,8 +501,8 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   const isMobile = useIsMobile()
 
   return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
-      <DrawerTrigger asChild>
+    <Drawer direction={isMobile ? "bottom" : "right"}>      
+      <DrawerTrigger asChild className="w-max-fit">
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
           {item.name}
         </Button>
