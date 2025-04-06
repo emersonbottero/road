@@ -15,6 +15,13 @@
         "quarter": 5,
         "duration": 10,
         "color":"darkgreen"
+      },
+      {
+        "title":"Putz..",
+        "start": 2025,
+        "quarter": 11,
+        "duration": 12,
+        "color":"darkgreen"
       }
     ]
   },{

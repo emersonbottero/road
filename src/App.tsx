@@ -8,7 +8,7 @@ function App() {
 
   return (
     <>
-       <SidebarProvider>
+      <SidebarProvider>
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />

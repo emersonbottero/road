@@ -1,3 +1,4 @@
+// #region import
 import * as React from "react"
 import {
   DndContext,
@@ -21,7 +22,7 @@ import { CSS } from "@dnd-kit/utilities"
 import {
   IconGripVertical,
   IconPlus,
-  IconTrendingUp,
+  // IconTrendingUp,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -38,17 +39,17 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+// import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { z } from "zod"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+// import {
+//   ChartConfig,
+//   // ChartContainer,
+//   // ChartTooltip,
+//   // ChartTooltipContent,
+// } from "@/components/ui/chart"
 import {
   Drawer,
   DrawerClose,
@@ -61,14 +62,14 @@ import {
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select"
+// import { Separator } from "@/components/ui/separator"
 import {
   Table,
   TableBody,
@@ -78,6 +79,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import interact from "@interactjs/interact";
+import '@interactjs/auto-start'
+import '@interactjs/actions/drag'
+import '@interactjs/actions/resize'
+import '@interactjs/modifiers'
 
 export const schema = z.object({
   name: z.string(),
@@ -88,14 +94,9 @@ export const schema = z.object({
       duration: z.number(),
       color:z.string()
   }))
-  // id: z.number(),
-  // header: z.string(),
-  // type: z.string(),
-  // status: z.string(),
-  // target: z.string(),
-  // limit: z.string(),
-  // reviewer: z.string(),
 })
+
+// #endregion
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -121,7 +122,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
     id: "drag",
     header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.name} />,    
+    cell: ({ row }) => <DragHandle id={row.original.name} />,
   },
   // {
   //   id: "select",
@@ -155,38 +156,42 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     cell: ({ row }) => {
       return <TableCellViewer item={ row.original}/>
     },
-    enableHiding: false,        
+    enableHiding: false,
   },
    {
     accessorKey: "items",
     header: () => (
       <>
-        <div className="grid grid-cols-4 gap-1 text-center text-white *:text-white *:bg-blue-800 *:rounded-2xl *:my-1">			
+        <div className="grid grid-cols-4 gap-1 text-center text-white *:text-white *:bg-blue-800 *:rounded-sm *:my-1">
 			    <span>2024</span><span>2025</span><span>2026</span>
 			    <span>2027</span>
 		    </div>
-        <div className="grid grid-cols-4 gap-1 mb-1">			
-          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
+        <div className="grid grid-cols-4 gap-1 mb-1">
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-sm">
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-sm">
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-sm">
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
-          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-2xl">			
+          <div className="grid grid-cols-4 gap-1 text-center *:text-white *:bg-blue-800 *:rounded-sm">
             <span>I</span><span>II</span><span>III</span><span>IIII</span>
           </div>
         </div>
       </>
         ),
     cell: ({ row }) => (
-      <div className="grid grid-cols-16 gap-1">  
-              {row.original.items.map((i, index) => (<div className="rounded-2xl p-1 text-center text-white" key={index} style={{gridColumn: `${i.quarter}/${i.duration}`, backgroundColor: i.color}}>{i.title}</div>))}
+      <div className="grid grid-cols-16 gap-1">
+              {row.original.items.map((i, index) => (
+                //<div className="draggabble rounded-2xl p-1 text-center text-white" key={index} style={{gridColumn: `${i.quarter}/${i.duration}`, backgroundColor: i.color, resize: "horizontal"}}>{i.title}</div>
+                <DraggableResizableItem item={i} key={index} />                
+              ))}
       </div>
     ),
   },
+  //#region backup
   // {
   //   accessorKey: "type",
   //   header: "Section Type",
@@ -320,6 +325,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   //     </DropdownMenu>
   //   ),
   // },
+  //#endregion
 ]
 
 function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
@@ -345,6 +351,76 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
       ))}
     </TableRow>
   )
+}
+
+function showEventInfo (event) {
+  const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
+
+  console.log(`action: ${actionInfo} \nside: ${event.edges.left ? '<--' : '-->'}, ${event.pageY} \ndelta: ${event.dx},${event.dy}`)
+}
+
+function DraggableResizableItem({item}:{item:any}) {
+  const divRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const target = divRef.current;
+
+        if (target) {
+            interact(target)                
+                .draggable({
+                    listeners: {
+                        move(event) {
+                          
+                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                            // const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                            target.style.transform = `translateX(${x}px)`;
+                            target.setAttribute('data-x', x);
+                            // target.setAttribute('data-y', y);
+                        }
+                    },
+                    modifiers: [
+                      interact.modifiers.snapSize({
+                        targets: [
+                          { width: 100 },
+                          interact.snappers.grid({ width: target.parentElement.offsetWidth / 16, height: 100 }),
+                        ],
+                      }),
+                    ],  
+                })
+                .resizable({
+                    edges: { left: true, right: true },
+                    modifiers: [
+                      interact.modifiers.snapSize({
+                        targets: [
+                          { width: 100 },
+                          interact.snappers.grid({ width: target.parentElement.offsetWidth / 16, height: 100 }),
+                        ],
+                      }),
+                    ],                    
+                    listeners: {
+                      move(event) {
+                        let { x, y } = event.target.dataset
+                
+                        x = (parseFloat(x) || 0) + event.deltaRect.left
+                        y = (parseFloat(y) || 0) + event.deltaRect.top                
+                        
+                        Object.assign(event.target.style, {
+                          width: `${event.rect.width}px`,
+                          height: `${event.rect.height}px`,
+                          transform: `translateX(${x}px)`
+                        })
+                
+                        Object.assign(event.target.dataset, { x, y })
+                      }
+                    }
+                })
+                .on('dragmove dragend', showEventInfo)
+                .on(['resizestart', 'resizemove', 'resizeend'], showEventInfo);
+        }
+}, []);
+
+  return <div  ref={divRef} className="cursor-grab box-border rounded-sm p-1 text-center text-white" style={{gridColumnStart: `${item.quarter}`, gridColumnEnd:`${item.duration}`, backgroundColor: item.color}}>{item.title}</div>
 }
 
 export function DataTable({
@@ -401,6 +477,7 @@ export function DataTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
@@ -412,15 +489,15 @@ export function DataTable({
     }
   }
 
-  return (   
+  return (
     <div className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-        <div className="flex items-center gap-2">         
+        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <IconPlus />
             <span className="hidden lg:inline">Add Section</span>
           </Button>
         </div>
-   
+
         <div className="overflow-hidden rounded-lg border">
           <DndContext
             collisionDetection={closestCenter}
@@ -447,7 +524,7 @@ export function DataTable({
                     })}
                   </TableRow>
                 ))}
-              </TableHeader>           
+              </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
@@ -472,36 +549,36 @@ export function DataTable({
             </Table>
           </DndContext>
         </div>
-       
+
      </div>
   )
 }
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+// const chartData = [
+//   { month: "January", desktop: 186, mobile: 80 },
+//   { month: "February", desktop: 305, mobile: 200 },
+//   { month: "March", desktop: 237, mobile: 120 },
+//   { month: "April", desktop: 73, mobile: 190 },
+//   { month: "May", desktop: 209, mobile: 130 },
+//   { month: "June", desktop: 214, mobile: 140 },
+// ]
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig
+// const chartConfig = {
+//   desktop: {
+//     label: "Desktop",
+//     color: "var(--primary)",
+//   },
+//   mobile: {
+//     label: "Mobile",
+//     color: "var(--primary)",
+//   },
+// } satisfies ChartConfig
 
 function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   const isMobile = useIsMobile()
 
   return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>      
+    <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild className="w-max-fit">
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
           {item.name}
@@ -515,7 +592,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {!isMobile && (
+          {/* {!isMobile && (
             <>
               <ChartContainer config={chartConfig}>
                 <AreaChart
@@ -571,7 +648,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               </div>
               <Separator />
             </>
-          )}
+          )} */}
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
               <Label htmlFor="header">Name</Label>
@@ -580,31 +657,13 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="type">Items</Label>
-                <Select defaultValue={item.items}>
-                  <SelectTrigger id="type" className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Table of Contents">
-                      Table of Contents
-                    </SelectItem>
-                    <SelectItem value="Executive Summary">
-                      Executive Summary
-                    </SelectItem>
-                    <SelectItem value="Technical Approach">
-                      Technical Approach
-                    </SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Capabilities">Capabilities</SelectItem>
-                    <SelectItem value="Focus Documents">
-                      Focus Documents
-                    </SelectItem>
-                    <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover Page">Cover Page</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>              
-            </div>            
+                <pre>
+                  <code>
+                    {JSON.stringify(item.items)}
+                  </code>
+                </pre>
+              </div>
+            </div>
           </form>
         </div>
         <DrawerFooter>
