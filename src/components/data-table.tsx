@@ -84,6 +84,7 @@ import '@interactjs/auto-start'
 import '@interactjs/actions/drag'
 import '@interactjs/actions/resize'
 import '@interactjs/modifiers'
+import { off } from "process"
 
 export const schema = z.object({
   name: z.string(),
@@ -353,73 +354,135 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-function showEventInfo (event) {
-  const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
-
-  console.log(`action: ${actionInfo} \nside: ${event.edges.left ? '<--' : '-->'}, ${event.pageY} \ndelta: ${event.dx},${event.dy}`)
-}
-
 function DraggableResizableItem({item}:{item:any}) {
   const divRef = React.useRef<HTMLDivElement>(null);
+  const [gridWidth, setGridWidth] = React.useState(0);
+  const [parentOffsetLeft, setParentOffsetLeft] = React.useState(0);
+
+  React.useEffect(() => {
+    const updateGridWidth = () => {
+      
+      const parent = divRef.current?.parentElement;
+      if (parent) {
+        const computedStyle = window.getComputedStyle(parent);
+         // Get the grid-template-columns property and count the number of columns
+         const gridTemplateColumns = computedStyle.getPropertyValue("grid-template-columns");
+         const columns = gridTemplateColumns.split(" ").length;
+ 
+         const gap = parseFloat(computedStyle.gap || "0"); // Get the gap between grid items
+         const totalGap = gap * (columns - 1); // Total gap space
+         const availableWidth = parent.offsetWidth - totalGap; // Subtract gap space from parent width
+         
+        setGridWidth((availableWidth / columns) + gap); // Calculate the width of each grid cell
+
+        const parentRect = parent.getBoundingClientRect();
+        setParentOffsetLeft(parentRect.left);
+      }
+    };
+
+    // Update grid width on mount and window resize
+    updateGridWidth();
+    const parent = divRef.current?.parentElement;
+    new ResizeObserver(updateGridWidth).observe(parent!);
+    // if(parent){
+
+    //   console.log(`Parent: ${parent}`);
+      
+    //   divRef.current?.closest(".grid")!.addEventListener("resize", updateGridWidth);
+    // }
+      
+    // // Cleanup event listener on unmount
+    // return () => {
+    //   divRef.current?.closest(".grid")!.removeEventListener("resize", updateGridWidth);
+    // };
+  }, []);
 
   React.useEffect(() => {
     const target = divRef.current;
+    console.log("recalculating... target", target);
+    
+    if (target && gridWidth > 0) {
+      interact(target)
+        // .draggable({
+        //   listeners: {
+        //     move(event) {
+        //       const x =
+        //         (parseFloat(target.getAttribute("data-x") || "0")) + event.dx;
 
-        if (target) {
-            interact(target)                
-                .draggable({
-                    listeners: {
-                        move(event) {
-                          
-                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                            // const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+        //       target.style.transform = `translateX(${x}px)`;
+        //       target.setAttribute("data-x", x);
+        //     },
+        //   },
+        //   modifiers: [
+        //     interact.modifiers.snap({
+        //       targets: [
+        //         //@ts-ignore
+        //         interact.snappers.grid({
+        //           x: gridWidth,
+        //           y: 100, // Adjust this if you want snapping in the vertical direction
+        //          // offset: { x: parentOffsetLeft, y: 0 }
+        //         }),
+        //       ],
+        //       // relativePoints: [
+        //       //   { x: 0  , y: 0   },   // snap relative to the element's top-left,
+        //       //   { x: 0.5, y: 0.5 },   // to the center
+        //       //   { x: 1  , y: 1   }    // and to the bottom-right]            
+        //       // ]
+        //     }),
+        //     interact.modifiers.restrictRect({
+        //       restriction: 'parent',
+        //     })
+        //   ],
+        // })
+        .resizable({
+          edges: { left: true, right: true },
+          modifiers: [
+            interact.modifiers.snapSize({
+              targets: [
+                //@ts-ignore
+                interact.snappers.grid({
+                  width: gridWidth,
+                  height: 100,
+                }),
+              ],
+              offset: { x: 4, y: 0 },
+            }),
+            interact.modifiers.restrictRect({
+              restriction: 'parent',
+            }),
+            interact.modifiers.restrictSize({
+              min: { width: gridWidth, height: 100 },
+            })
+          ],
+          listeners: {
+            move(event) {
+              let { x, y } = event.target.dataset;
 
-                            target.style.transform = `translateX(${x}px)`;
-                            target.setAttribute('data-x', x);
-                            // target.setAttribute('data-y', y);
-                        }
-                    },
-                    modifiers: [
-                      interact.modifiers.snapSize({
-                        targets: [
-                          { width: 100 },
-                          interact.snappers.grid({ width: target.parentElement.offsetWidth / 16, height: 100 }),
-                        ],
-                      }),
-                    ],  
-                })
-                .resizable({
-                    edges: { left: true, right: true },
-                    modifiers: [
-                      interact.modifiers.snapSize({
-                        targets: [
-                          { width: 100 },
-                          interact.snappers.grid({ width: target.parentElement.offsetWidth / 16, height: 100 }),
-                        ],
-                      }),
-                    ],                    
-                    listeners: {
-                      move(event) {
-                        let { x, y } = event.target.dataset
-                
-                        x = (parseFloat(x) || 0) + event.deltaRect.left
-                        y = (parseFloat(y) || 0) + event.deltaRect.top                
-                        
-                        Object.assign(event.target.style, {
-                          width: `${event.rect.width}px`,
-                          height: `${event.rect.height}px`,
-                          transform: `translateX(${x}px)`
-                        })
-                
-                        Object.assign(event.target.dataset, { x, y })
-                      }
-                    }
-                })
-                .on('dragmove dragend', showEventInfo)
-                .on(['resizestart', 'resizemove', 'resizeend'], showEventInfo);
-        }
-}, []);
+              x = (parseFloat(x) || 0) + event.deltaRect.left;
+              y = (parseFloat(y) || 0) + event.deltaRect.top;
 
+              Object.assign(event.target.style, {
+                width: `${event.rect.width}px`,
+                //height: `${event.rect.height}px`,
+                transform: `translateX(${x}px)`,
+              });
+
+              Object.assign(event.target.dataset, { x, y });
+            },
+          },
+        })
+        // .on("dragstart", (event) => {
+        //  console.log("dragstart", event.target.dataset);
+        // })
+        .on("dragend", (event) => {
+         console.log(event);
+         
+        })
+    }
+
+    console.log(gridWidth, parentOffsetLeft);
+    
+  }, [gridWidth]);
   return <div  ref={divRef} className="cursor-grab box-border rounded-sm p-1 text-center text-white" style={{gridColumnStart: `${item.quarter}`, gridColumnEnd:`${item.duration}`, backgroundColor: item.color}}>{item.title}</div>
 }
 
@@ -525,7 +588,8 @@ export function DataTable({
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              <TableBody className="**:data-[slot=table-cell]:first:w-8 **:data-[slot=table-cell]:nth-2:w-8
+              ">
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
                     items={dataIds}
@@ -579,8 +643,8 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
-      <DrawerTrigger asChild className="w-max-fit">
-        <Button variant="link" className="text-foreground w-fit px-0 text-left">
+      <DrawerTrigger asChild className="w-max-fit ">
+        <Button variant="link" className="truncate block text-foreground w-40 px-0 text-left">
           {item.name}
         </Button>
       </DrawerTrigger>

@@ -9,7 +9,7 @@ import {
   IconFileWord,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop,
+  // IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
@@ -159,8 +159,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                {/* <IconInnerShadowTop className="!size-5" /> */}
+                <span className="text-base font-semibold"><span className="text-red-600">X</span>Roads</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
