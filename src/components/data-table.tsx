@@ -84,7 +84,6 @@ import '@interactjs/auto-start'
 import '@interactjs/actions/drag'
 import '@interactjs/actions/resize'
 import '@interactjs/modifiers'
-import { off } from "process"
 
 export const schema = z.object({
   name: z.string(),
@@ -357,7 +356,6 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
 function DraggableResizableItem({item}:{item:any}) {
   const divRef = React.useRef<HTMLDivElement>(null);
   const [gridWidth, setGridWidth] = React.useState(0);
-  const [parentOffsetLeft, setParentOffsetLeft] = React.useState(0);
 
   React.useEffect(() => {
     const updateGridWidth = () => {
@@ -374,9 +372,8 @@ function DraggableResizableItem({item}:{item:any}) {
          const availableWidth = parent.offsetWidth - totalGap; // Subtract gap space from parent width
          
         setGridWidth((availableWidth / columns) + gap); // Calculate the width of each grid cell
-
-        const parentRect = parent.getBoundingClientRect();
-        setParentOffsetLeft(parentRect.left);
+        console.log(`Grid Width: ${(availableWidth / columns) + gap} :${gap}`);
+        
       }
     };
 
@@ -403,37 +400,33 @@ function DraggableResizableItem({item}:{item:any}) {
     
     if (target && gridWidth > 0) {
       interact(target)
-        // .draggable({
-        //   listeners: {
-        //     move(event) {
-        //       const x =
-        //         (parseFloat(target.getAttribute("data-x") || "0")) + event.dx;
+        .draggable({
+          listeners: {
+            move(event) {
+              const x =
+                (parseFloat(target.getAttribute("data-x") || "0")) + event.dx;
 
-        //       target.style.transform = `translateX(${x}px)`;
-        //       target.setAttribute("data-x", x);
-        //     },
-        //   },
-        //   modifiers: [
-        //     interact.modifiers.snap({
-        //       targets: [
-        //         //@ts-ignore
-        //         interact.snappers.grid({
-        //           x: gridWidth,
-        //           y: 100, // Adjust this if you want snapping in the vertical direction
-        //          // offset: { x: parentOffsetLeft, y: 0 }
-        //         }),
-        //       ],
-        //       // relativePoints: [
-        //       //   { x: 0  , y: 0   },   // snap relative to the element's top-left,
-        //       //   { x: 0.5, y: 0.5 },   // to the center
-        //       //   { x: 1  , y: 1   }    // and to the bottom-right]            
-        //       // ]
-        //     }),
-        //     interact.modifiers.restrictRect({
-        //       restriction: 'parent',
-        //     })
-        //   ],
-        // })
+              target.style.transform = `translateX(${x}px)`;
+              target.setAttribute("data-x", x);
+            },
+          },
+          modifiers: [
+            interact.modifiers.snap({
+              targets: [
+                //@ts-ignore
+                interact.snappers.grid({
+                  x: gridWidth,
+                  y: 100, // Adjust this if you want snapping in the vertical direction                 
+                }),
+              ],
+              offset:'parent',
+              relativePoints: [ { x: 0, y: 0 } ]
+            }),
+            interact.modifiers.restrictRect({
+              restriction: 'parent',
+            })
+          ],
+        })
         .resizable({
           edges: { left: true, right: true },
           modifiers: [
@@ -480,7 +473,7 @@ function DraggableResizableItem({item}:{item:any}) {
         })
     }
 
-    console.log(gridWidth, parentOffsetLeft);
+    console.log(gridWidth);
     
   }, [gridWidth]);
   return <div  ref={divRef} className="cursor-grab box-border rounded-sm p-1 text-center text-white" style={{gridColumnStart: `${item.quarter}`, gridColumnEnd:`${item.duration}`, backgroundColor: item.color}}>{item.title}</div>
