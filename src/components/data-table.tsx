@@ -353,6 +353,8 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
+import { OutputType, Svg2Roughjs } from 'svg2roughjs';
+
 function DraggableResizableItem({item}:{item:any}) {
   const divRef = React.useRef<HTMLDivElement>(null);
   const [gridWidth, setGridWidth] = React.useState(0);
@@ -396,8 +398,20 @@ function DraggableResizableItem({item}:{item:any}) {
 
   React.useEffect(() => {
     const target = divRef.current;
-    console.log("recalculating... target", target);
     
+    const svg = divRef.current!.getElementsByTagName("svg")[0];
+    const sketchySvg = divRef.current!.getElementsByTagName("svg")[1];
+    // sketchySvg.outerHTML = '<svg className="absolute inset-0 h-[-webkit-fill-available] w-full -z-1" width="100%"></svg>'
+    let svg2roughjs = new Svg2Roughjs(sketchySvg,OutputType.SVG, {
+      // strokeWidth: 8, fillWeight: 3, 
+      // hachureAngle: 0, // angle of hachure,
+      // hachureGap: 2,
+      // fillStyle: 'zigzag',
+      stroke: "#000",
+    });
+    svg2roughjs.svg = svg    
+    svg2roughjs.sketch()
+
     if (target && gridWidth > 0) {
       interact(target)
         .draggable({
@@ -461,6 +475,8 @@ function DraggableResizableItem({item}:{item:any}) {
               });
 
               Object.assign(event.target.dataset, { x, y });
+
+              svg2roughjs.sketch()
             },
           },
         })
@@ -468,15 +484,23 @@ function DraggableResizableItem({item}:{item:any}) {
         //  console.log("dragstart", event.target.dataset);
         // })
         .on("dragend", (event) => {
-         console.log(event);
-         
+         console.log(event);         
         })
     }
 
-    console.log(gridWidth);
     
   }, [gridWidth]);
-  return <div  ref={divRef} className="cursor-grab box-border rounded-sm p-1 text-center text-white" style={{gridColumnStart: `${item.quarter}`, gridColumnEnd:`${item.duration}`, backgroundColor: item.color}}>{item.title}</div>
+  
+  return <div ref={divRef} className="relative cursor-grab box-border rounded-sm text-center opacity-95" style={{gridColumnStart: `${item.quarter}`, gridColumnEnd:`${item.duration}`}}>
+    <svg  className="absolute inset-0 h-[-webkit-fill-available] w-full -z-1 opacity-0" xmlns="http://www.w3.org/2000/svg"  preserveAspectRatio="none" style={{maxHeight: "30px"}}>
+    <rect width="100%" height="100%" rx="7"  fill={`${item.color}`}/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" className="fill-accent-foreground">{item.title}</text>
+    </svg>
+    <svg className="absolute inset-0 h-[-webkit-fill-available] w-full -z-1 **:[&_path]:opacity-60" width="100%"></svg>
+   <span className="opacity-0">
+     {item.title}
+    </span> 
+  </div>
 }
 
 export function DataTable({
